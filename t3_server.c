@@ -61,14 +61,14 @@ void runDocker()
 
 void *createContainer( void *arg )
 {
-	char *args, names[SIZE_MESSAGE][LENGHT_MESSAGE];
+	char *args, names_create[SIZE_MESSAGE][LENGHT_MESSAGE];
 	pid_t pid;
 
 	pid = fork();
 
 	// Parse the client message by spaces
 	args = (char*)arg;
-	parseCommand( args, names );
+	parseCommand( args, names_create );
 
 	if( pid < 0 ){
 		perror( "ERROR: " );
@@ -80,7 +80,7 @@ void *createContainer( void *arg )
 		name[2] = image
 	*/ 
 	else if( pid == 0 ){
-		execlp( "sudo", "sudo", "docker", "run", "--name", names[1], names[2], NULL ); 
+		execlp( "sudo", "sudo", "docker", "run", "-di", "--name", names_create[1], names_create[2], NULL ); 
 	}
 
 	else{
@@ -88,7 +88,7 @@ void *createContainer( void *arg )
 	}
 	
 	// Confirmation message for the function
-	printf( "Container named %s with the image %s was successfully created\n", names[1], names[2] );
+	printf( "Container named %s with the image %s was successfully created\n", names_create[1], names_create[2] );
 	
 	return 0;
 }
@@ -116,24 +116,53 @@ void *listContainer( void *arg )
 
 void *stopContainer( void *arg )
 {
-	char *args, name[SIZE_MESSAGE][LENGHT_MESSAGE];
-	
-	args = (char*)arg;
-	parseCommand( args, name );
+	char *args, name_stop[SIZE_MESSAGE][LENGHT_MESSAGE];
+	pid_t pid;
 
-	puts( "In stop container" );
+	pid = fork();
+
+	args = (char*)arg;
+	parseCommand( args, name_stop );
+
+	if( pid < 0 ){
+		perror( "ERROR: " );
+		return 0;
+	}
+	else if( pid == 0 ){
+		// name[1] = 
+		execlp( "sudo", "sudo", "docker", "stop", name_stop[1], NULL );
+		puts( "Pasé\n" );
+	}
+	else{
+		wait(NULL);
+	}
+	
+	printf( "Container named %s was successfully stopped\n", name_stop[1] );
 	return 0;
 }
 
 
 void *deleteContainer( void *arg )
 {
-	char *args, name[SIZE_MESSAGE][LENGHT_MESSAGE];
+	char *args, name_delete[SIZE_MESSAGE][LENGHT_MESSAGE];
+	pid_t pid;
+
+	pid = fork();
 	
 	args = (char*)arg;
-	parseCommand( args, name );
+	parseCommand( args, name_delete );
 
-	puts( "In delete container" );
+	if( pid < 0 ){
+		perror( "ERROR: " );
+	}
+	else if( pid == 0 ){
+		execlp( "sudo", "sudo", "docker", "rm", name_delete[1], NULL );
+	}
+	else{
+		wait(NULL);
+	}
+
+	printf( "Container named %s was successfully deleted\n", name_delete[1] );
 	return 0;
 }
 
@@ -209,6 +238,8 @@ int main( int argc , char *argv[] )
 		// Switch to create a thread depending on the client message
 		switch( atoi(&client_message[0] )  )
 		{
+
+			// Case to create container
 			case 1:
 				// Create the thread and notifies if there is an error
 				if( pthread_create( &threadToCreate, NULL, createContainer, &client_message ) != 0 ){
@@ -216,15 +247,18 @@ int main( int argc , char *argv[] )
 				}
 
 				// Waits for the thread to finish it's task
-				if( pthread_join( threadToCreate, NULL ) != 0 )
-					perror( "ERROR: Thread could not be joined\n" );
-				
+				if( pthread_join( threadToCreate, NULL ) != 0 ){
+					perror( "ERROR: " );
+				}
+
 				// Send confirmation message back to client
 				strcpy( send_message, "The container was successfully created" );
 				send( client_sock , send_message , strlen(send_message), 0 );
 
 				break;
 
+
+			// Case to list containers
 			case 2 :
 				if( pthread_create( &threadtoList, NULL, listContainer, NULL ) != 0 ){
 					perror( "ERROR: " );
@@ -234,23 +268,51 @@ int main( int argc , char *argv[] )
 					perror( "ERROR: " );
 				}
 
+				// Ask if this needs to be send to client (command itself)
 				strcpy( send_message, "The list was successfully done" );
 				send( client_sock , send_message , strlen(send_message), 0 );
 
 				break;
 
+
+			// Case to stop container
 			case 3:
-				pthread_create( &threadToStop, NULL, stopContainer, &client_message );
+				if( pthread_create( &threadToStop, NULL, stopContainer, &client_message ) != 0 ){
+					perror( "ERROR: " );
+				}
+				
+				if( pthread_join( threadToStop, NULL ) != 0 ){
+					perror( "ERROR: " );
+				}
+
+				strcpy( send_message, "The container have been successfully stopped" );
+				send( client_sock , send_message , strlen(send_message), 0 );
+
 				break;
 
+
+			// Case to delete container 
 			case 4:
-				pthread_create( &threadToDelete, NULL, deleteContainer, &client_message );
+				if( pthread_create( &threadToDelete, NULL, deleteContainer, &client_message ) != 0 ){
+					perror( "ERROR: " );
+				}
+				
+				if( pthread_join( threadToStop, NULL ) != 0 ){
+					perror( "ERROR: " );
+				}
+
+				strcpy( send_message, "The container have been successfully deleted" );
+				send( client_sock , send_message , strlen(send_message), 0 );
+
 				break;
 			
+
+			// Case to exit server
 			case 0:
 				terminate_server = 0;
 				break;
 
+			// Default case if the number is wrong
 			default:
 				puts( "Selected number is not currently available. Try again\n" );
 		}
