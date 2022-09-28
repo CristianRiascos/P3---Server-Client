@@ -88,7 +88,7 @@ void *createContainer( void *arg )
 	}
 	
 	// Confirmation message for the function
-	printf( "Container named %s with the image %s was successfully created\n", names_create[1], names_create[2] );
+	printf( "\nContainer named %s with the image %s was successfully created\n", names_create[1], names_create[2] );
 	
 	return 0;
 }
@@ -99,6 +99,7 @@ void *listContainer( void *arg )
 	pid_t pid;
 
 	pid = fork();
+	puts( "\n" );
 
 	if( pid < 0 ){
 		perror( "ERROR: " );
@@ -137,7 +138,7 @@ void *stopContainer( void *arg )
 		wait(NULL);
 	}
 	
-	printf( "Container named %s was successfully stopped\n", name_stop[1] );
+	printf( "\nContainer named %s was successfully stopped\n", name_stop[1] );
 	return 0;
 }
 
@@ -148,7 +149,7 @@ void *deleteContainer( void *arg )
 	pid_t pid;
 
 	pid = fork();
-	
+
 	args = (char*)arg;
 	parseCommand( args, name_delete );
 
@@ -162,7 +163,7 @@ void *deleteContainer( void *arg )
 		wait(NULL);
 	}
 
-	printf( "Container named %s was successfully deleted\n", name_delete[1] );
+	printf( "\nContainer named %s was successfully deleted\n", name_delete[1] );
 	return 0;
 }
 
@@ -170,13 +171,14 @@ void *deleteContainer( void *arg )
 int main( int argc , char *argv[] ) 
 {
 	int socket_desc, client_sock, c, terminate_server;
-	struct sockaddr_in server, client;  // https://github.com/torvalds/linux/blob/master/tools/include/uapi/linux/in.h
+	struct sockaddr_in server, client; 
 	char client_message[SIZE_MESSAGE], send_message[SIZE_MESSAGE];
 	
 	system( "clear" );
 	puts( "SERVER\n\n" );
 
 	wait(NULL);
+
 	// Create socket
     // AF_INET (IPv4 protocol) , AF_INET6 (IPv6 protocol) 
     // SOCK_STREAM: TCP(reliable, connection oriented)
@@ -199,16 +201,9 @@ int main( int argc , char *argv[] )
 	}
 	puts( "Bind done" );
 	
-	// Listen
-    // It puts the server socket in a passive mode, where it waits for the client 
-    // to approach the server to make a connection. The backlog, defines the maximum 
-    // length to which the queue of pending connections for sockfd may grow. If a connection 
-    // request arrives when the queue is full, the client may receive an error with an 
-    // indication of ECONNREFUSED.
-	// https://man7.org/linux/man-pages/man2/listen.2.html
 	listen( socket_desc, 4 );
 	
-	//Accept and incoming connection
+	// Accept and incoming connection
 	puts( "Waiting for incoming connections..." );
 	c = sizeof( struct sockaddr_in );
 	
@@ -218,7 +213,7 @@ int main( int argc , char *argv[] )
 		perror( "ERROR: Connection rejected\n" );
 		return EXIT_FAILURE;
 	}
-	puts( "Connection accepted" );
+	puts( "Connection accepted\n" );
 
 	// Create one thread to each function 
 	pthread_t threadToCreate, threadtoList, threadToStop, threadToDelete;
@@ -228,9 +223,8 @@ int main( int argc , char *argv[] )
 	while( terminate_server ) 
 	{
 		// Recieve message from the clien with the instruction
-		if( recv( client_sock, client_message, SIZE_MESSAGE, 0 ) > 0 ) {
-				// Revisar si dejar este printf
-				printf( "Received message: %s\n", client_message );		
+		if( recv( client_sock, client_message, SIZE_MESSAGE, 0 ) <= 0 ) {
+			perror( "ERROR: " ); 		
 		}
 		
 		client_message[strcspn(client_message, "\n")] = 0;

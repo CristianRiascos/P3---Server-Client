@@ -66,8 +66,11 @@ int main( int argc, char *argv[] )
 			//break;
 		}
 
-		puts( "Server reply :" );
+		printf( "Server reply: %s\n", server_reply );
+		/*
+		puts( "Server reply: " );
 		puts( server_reply );
+		*/
 		puts( "\n" );
 	}
 	
