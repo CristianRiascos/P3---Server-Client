@@ -68,7 +68,7 @@ int main( int argc, char *argv[] )
 
 		puts( "Server reply :" );
 		puts( server_reply );
-		
+		puts( "\n" );
 	}
 	
 }
