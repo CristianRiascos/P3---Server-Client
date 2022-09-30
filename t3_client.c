@@ -13,7 +13,7 @@ int main( int argc, char *argv[] )
 	char message[100], server_reply[2000];
 	
 	system( "clear" );
-	puts( "CLIENT\n\n" );
+	puts( "CLIENT 1\n\n" );
 	// Create socket
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	if (sock == -1) {
@@ -46,7 +46,6 @@ int main( int argc, char *argv[] )
 		printf( "Enter message: " );
 		fgets( message, 1000, stdin );
 
-
 		// Send some data
 		if (send(sock, message, strlen(message)+1, 0) < 0) {
 			puts( "ERROR: Message could not be send\n" );
@@ -67,10 +66,7 @@ int main( int argc, char *argv[] )
 		}
 
 		printf( "Server reply: %s\n", server_reply );
-		/*
-		puts( "Server reply: " );
-		puts( server_reply );
-		*/
+
 		puts( "\n" );
 	}
 	

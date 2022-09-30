@@ -11,12 +11,6 @@
 #define LENGHT_MESSAGE 25 	// Lenght of the allowed char 
 
 
-/*
-    La función recibe el mensaje del usuario y un array de cadenas de texto.
-    La función pone dentro del array las palabras que hayan dentro de la cadena por
-    medio de buscar espacios entre la cadena.
-    Devuelve el número de palabras encontradas y el array con las palabras sin espacios.
-*/
 int parseCommand( char *line, char parse[SIZE_MESSAGE][LENGHT_MESSAGE] )
 {
     int iterator, j, numberWords;
@@ -39,7 +33,6 @@ int parseCommand( char *line, char parse[SIZE_MESSAGE][LENGHT_MESSAGE] )
 }
 
 
-// See later if this if going to be used
 void runDocker()
 {
 	pid_t pid = fork();
@@ -80,7 +73,7 @@ void *createContainer( void *arg )
 		name[2] = image
 	*/ 
 	else if( pid == 0 ){
-		execlp( "sudo", "sudo", "docker", "run", "-di", "--name", names_create[1], names_create[2], NULL ); 
+		execlp( "sudo", "sudo", "docker", "run", "-di", "--name", names_create[1], names_create[2], NULL );
 	}
 
 	else{
@@ -176,6 +169,7 @@ int main( int argc , char *argv[] )
 	
 	system( "clear" );
 	puts( "SERVER\n\n" );
+	runDocker();
 
 	wait(NULL);
 
@@ -215,6 +209,7 @@ int main( int argc , char *argv[] )
 	}
 	puts( "Connection accepted\n" );
 
+
 	// Create one thread to each function 
 	pthread_t threadToCreate, threadtoList, threadToStop, threadToDelete;
 	
@@ -222,7 +217,7 @@ int main( int argc , char *argv[] )
 	terminate_server = 1;
 	while( terminate_server ) 
 	{
-		// Recieve message from the clien with the instruction
+		// Receive message from the client with the instruction
 		if( recv( client_sock, client_message, SIZE_MESSAGE, 0 ) <= 0 ) {
 			perror( "ERROR: " ); 		
 		}
@@ -301,10 +296,17 @@ int main( int argc , char *argv[] )
 				break;
 			
 
-			// Case to exit server
+			// Case to search another client if the current one exit
 			case 0:
-				terminate_server = 0;
+				puts( "Waiting for incoming connections..." );
+				client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c);
+				if( client_sock < 0 ) {
+					perror( "ERROR: Connection rejected\n" );
+					return EXIT_FAILURE;
+				}
+				puts( "Connection accepted\n" );				
 				break;
+
 
 			// Default case if the number is wrong
 			default:
