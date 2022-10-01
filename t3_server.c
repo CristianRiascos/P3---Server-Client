@@ -310,7 +310,8 @@ int main( int argc , char *argv[] )
 
 			// Default case if the number is wrong
 			default:
-				puts( "Selected number is not currently available. Try again\n" );
+				strcpy( send_message, "Selected number is not currently available. Try again\n" );
+				send( client_sock , send_message , strlen(send_message), 0 );
 		}
 
     }
