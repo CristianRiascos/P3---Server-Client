@@ -1,4 +1,4 @@
-# P3---Server-Client
+# Mini ECS
 
 
 El programa posee 4 archivos (makefile, server y 2 clients), que se ejecutan por medio de los comandos: make t3_server, make t3_client, make t3_client2. Ejecutados en dicho orden, es decir, primero el servidor (para unirse al puerto 8888 y para buscar a quién conectarse) y después los clientes.
