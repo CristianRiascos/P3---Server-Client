@@ -10,6 +10,7 @@
 #define SIZE_MESSAGE 100	// Allowed char
 #define LENGHT_MESSAGE 25 	// Lenght of the allowed char 
 #define FILENAME "containers.txt" 
+#define FILE_LENGHT 10	// Number of files that can be created 
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -19,6 +20,8 @@ pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 	(special for deleteContainer) -2 = The container is not stopped
 */
 int functResult;
+
+int fileNumber = 0;
 
 // Function to parse a char by spaces
 int parseCommand( char *line, char parse[SIZE_MESSAGE][LENGHT_MESSAGE] )
@@ -422,7 +425,7 @@ int main( int argc , char *argv[] )
 {
 	int socket_desc, client_sock, c, terminate_server;
 	struct sockaddr_in server, client; 
-	char client_message[SIZE_MESSAGE], send_message[SIZE_MESSAGE];
+	char client_message[SIZE_MESSAGE], send_message[SIZE_MESSAGE], newName[30];;
 	
 	system( "clear" );
 	puts( "SERVER\n\n" );
@@ -586,7 +589,19 @@ int main( int argc , char *argv[] )
 
 			// Case to search another client if the current one exit
 			case 0:
+
+				/*
+				When the client exits, it creates a new file to store the previous containers info and creates a new 
+				containers.txt ready for the next client 
+				*/ 
+
+				sprintf( newName, "containers%d.txt", ++fileNumber );
+				rename( FILENAME, newName );
+				createFile();
+				puts( "\n\nPREPARING FILES...\n" );
+				sleep(3);
 				system("clear");
+	
 				puts( "\nWaiting for incoming connections..." );
 				client_sock = accept(socket_desc, (struct sockaddr *)&client, (socklen_t*)&c);
 				if( client_sock < 0 ) {
